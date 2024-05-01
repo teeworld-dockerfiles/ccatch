@@ -19,7 +19,7 @@ CGameControllerCcatch::CGameControllerCcatch(class CGameContext *pGameServer) :
 	IGameController(pGameServer), m_Teams(pGameServer), m_pInitResult(nullptr)
 {
 	m_pGameType = g_Config.m_SvTestingCommands ? TEST_TYPE_NAME : GAME_TYPE_NAME;
-
+	initialColors = {};
 	InitTeleporter();
 }
 
@@ -176,14 +176,63 @@ void CGameControllerCcatch::OnReset()
 {
 	IGameController::OnReset();
 	m_Teams.Reset();
-	GameServer()->SendChat(-1, CGameContext::CHAT_ALL, "restarted", -1);
 	int i = 0;
+	initialColors = {};
 	for(auto &pPlayer : GameServer()->m_apPlayers)
 		if(pPlayer) {
-			float h = (float)(i++ % MAX_COLORS) / (float)MAX_COLORS;
-			dbg_msg("sex", "%f", h);
-			pPlayer->m_TeeInfos.m_ColorBody = ColorHSLA(h, 1, 0.5f).Pack();
+			pPlayer->shots = 0;
+			pPlayer->catches = 0;
+			float const h = (float)(i++ % MAX_COLORS) / (float)MAX_COLORS;
+			int const color = ColorHSLA(h, 1, 0.5f).Pack();
+			pPlayer->m_TeeInfos.m_ColorBody = color;
+			if(initialColors.count(color) == 0) {
+				initialColors.insert({ color, std::vector<CPlayer*>{} });
+			}
+			initialColors.at(color).push_back(pPlayer);
 		}
+}
+
+void CGameControllerCcatch::OnEndRound()
+{
+	std::vector<CPlayer*> players{};
+	std::set<int> colors{};
+	for(auto &p : GameServer()->m_apPlayers)
+		if(p) {
+			players.push_back(p);
+			colors.insert(p->m_TeeInfos.m_ColorBody);
+		}
+	std::string playerString = "Winners: ";
+	int color = *colors.rbegin();
+	std::vector<CPlayer*> initialPlayers = initialColors.at(color);
+	if (initialPlayers.size() == 1) playerString = "Winner: ";
+	playerString += Server()->ClientName(initialPlayers.at(0)->GetCID());
+	if (initialPlayers.size() > 1) {
+		bool skippedFirst = false;
+		for(const auto &item : initialPlayers) {
+			if (!skippedFirst) {
+				skippedFirst = true;
+				continue;
+			}
+			playerString += ", ";
+			playerString += Server()->ClientName(item->GetCID());
+		}
+	}
+	GameServer()->SendChat(-1, CGameContext::CHAT_ALL, playerString.c_str(), -1);
+
+	CPlayer* bestAccPlayer = NULL;
+	float bestAcc = 0;
+	for(const auto &plr : players) {
+		if (plr->shots != 0 && (float) plr->catches / (float) plr->shots > bestAcc) {
+			bestAcc = (float) plr->catches / (float) plr->shots;
+			bestAccPlayer = plr;
+		}
+	}
+	if (bestAccPlayer != NULL) {
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "Best accuracy: %s (%.2f%%, %d shots)", Server()->ClientName(bestAccPlayer->GetCID()), bestAcc * 100, bestAccPlayer->shots);
+		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf, -1);
+	}
+
 }
 
 void CGameControllerCcatch::Tick()
@@ -208,7 +257,11 @@ void CGameControllerCcatch::Tick()
 			players.push_back(p);
 			colors.insert(p->m_TeeInfos.m_ColorBody);
 		}
-	if(players.size() > 1 && colors.size() == 1 && !GameServer()->m_World.m_Paused && Server()->Tick() > m_RoundStartTick + 10) IGameController::EndRound();
+	if(players.size() > 1 && colors.size() == 1 && !GameServer()->m_World.m_Paused && Server()->Tick() > m_RoundStartTick + 10)
+	{
+		OnEndRound();
+		IGameController::EndRound();
+	}
 }
 
 void CGameControllerCcatch::DoTeamChange(class CPlayer *pPlayer, int Team, bool DoChatMsg)

@@ -42,7 +42,8 @@ public:
 
 	std::shared_ptr<CScoreInitResult> m_pInitResult;
 
-	void SendSkinChange(int ClientID, int TargetID);
+	std::map<int, std::vector<CPlayer*>> initialColors;
 
+	void OnEndRound();
 };
 #endif // GAME_SERVER_GAMEMODES_DDRACE_H

@@ -592,6 +592,7 @@ void CCharacter::FireWeapon()
 			LaserReach = GameServer()->TuningList()[m_TuneZone].m_LaserReach;
 
 		new CLaser(GameWorld(), m_Pos, Direction, LaserReach, m_pPlayer->GetCID(), WEAPON_LASER);
+		GetPlayer()->shots++;
 		GameServer()->CreateSound(m_Pos, SOUND_LASER_FIRE, TeamMask());
 	}
 	break;

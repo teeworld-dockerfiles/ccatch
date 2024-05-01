@@ -29,6 +29,9 @@ CPlayer::CPlayer(CGameContext *pGameServer, uint32_t UniqueClientID, int ClientI
 	// DDNet-Skeleton
 	m_ScoreStartTick = Server()->Tick();
 
+	shots = 0;
+	catches = 0;
+
 	Reset();
 }
 

@@ -97,6 +97,7 @@ bool CLaser::HitCharacter(vec2 From, vec2 To)
 	{
 		if(pHit->GetPlayer()->m_TeeInfos.m_ColorBody != pOwnerChar->GetPlayer()->m_TeeInfos.m_ColorBody)
 		{
+			pOwnerChar->GetPlayer()->catches++;
 			pHit->GetPlayer()->m_TeeInfos.m_ColorBody = pOwnerChar->GetPlayer()->m_TeeInfos.m_ColorBody;
 			CNetMsg_Sv_KillMsg msg;
 			msg.m_Killer = m_Owner;
