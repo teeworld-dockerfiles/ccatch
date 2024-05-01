@@ -148,7 +148,7 @@ void CGameControllerCcatch::OnPlayerConnect(CPlayer *pPlayer)
 			CPlayer* randPlayer = players[rand() % players.size()];
 			if (randPlayer == pPlayer)
 				continue;
-			pPlayer->m_TeeInfos.m_ColorBody = players[rand() % players.size()]->m_TeeInfos.m_ColorBody;
+			pPlayer->m_TeeInfos.m_ColorBody = randPlayer->m_TeeInfos.m_ColorBody;
 			break;
 		}
 	}
