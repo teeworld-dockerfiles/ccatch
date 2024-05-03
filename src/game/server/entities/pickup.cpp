@@ -75,32 +75,32 @@ void CPickup::Tick()
 			switch(m_Type)
 			{
 			case POWERUP_HEALTH:
-				if(pChr->Freeze())
-					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_HEALTH, pChr->TeamMask());
+//				if(pChr->Freeze())
+//					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_HEALTH, pChr->TeamMask());
 				break;
 
 			case POWERUP_ARMOR:
-				if(pChr->Team() == TEAM_SUPER)
-					continue;
-				for(int j = WEAPON_SHOTGUN; j < NUM_WEAPONS; j++)
-				{
-					if(pChr->GetWeaponGot(j))
-					{
-						pChr->SetWeaponGot(j, false);
-						pChr->SetWeaponAmmo(j, 0);
-						Sound = true;
-					}
-				}
-				pChr->SetNinjaActivationDir(vec2(0, 0));
-				pChr->SetNinjaActivationTick(-500);
-				pChr->SetNinjaCurrentMoveTime(0);
-				if(Sound)
-				{
-					pChr->SetLastWeapon(WEAPON_GUN);
-					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_ARMOR, pChr->TeamMask());
-				}
-				if(pChr->GetActiveWeapon() >= WEAPON_SHOTGUN)
-					pChr->SetActiveWeapon(WEAPON_HAMMER);
+//				if(pChr->Team() == TEAM_SUPER)
+//					continue;
+//				for(int j = WEAPON_SHOTGUN; j < NUM_WEAPONS; j++)
+//				{
+//					if(pChr->GetWeaponGot(j))
+//					{
+//						pChr->SetWeaponGot(j, false);
+//						pChr->SetWeaponAmmo(j, 0);
+//						Sound = true;
+//					}
+//				}
+//				pChr->SetNinjaActivationDir(vec2(0, 0));
+//				pChr->SetNinjaActivationTick(-500);
+//				pChr->SetNinjaCurrentMoveTime(0);
+//				if(Sound)
+//				{
+//					pChr->SetLastWeapon(WEAPON_GUN);
+//					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_ARMOR, pChr->TeamMask());
+//				}
+//				if(pChr->GetActiveWeapon() >= WEAPON_SHOTGUN)
+//					pChr->SetActiveWeapon(WEAPON_HAMMER);
 				break;
 
 			case POWERUP_ARMOR_SHOTGUN:

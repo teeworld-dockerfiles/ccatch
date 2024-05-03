@@ -35,7 +35,7 @@ void CGameControllerCcatch::OnCharacterSpawn(CCharacter *pChr)
 	IGameController::OnCharacterSpawn(pChr);
 	pChr->SetTeams(&m_Teams);
 	pChr->SetTeleports(&m_TeleOuts, &m_TeleCheckOuts);
-	pChr->SetWeaponGot(WEAPON_HAMMER, false);
+	pChr->SetWeaponGot(WEAPON_HAMMER, true);
 	pChr->SetWeaponGot(WEAPON_GUN, false);
 	pChr->SetWeaponGot(WEAPON_LASER, true);
 	pChr->SetActiveWeapon(WEAPON_LASER);
