@@ -253,7 +253,7 @@ void CGameControllerCcatch::Tick()
 	std::vector<CPlayer*> players{};
 	std::set<int> colors{};
 	for(auto &p : GameServer()->m_apPlayers)
-		if(p) {
+		if(p && p->IsPlaying()) {
 			players.push_back(p);
 			colors.insert(p->m_TeeInfos.m_ColorBody);
 		}
