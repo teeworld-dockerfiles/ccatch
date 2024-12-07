@@ -1,52 +1,50 @@
-FROM debian:11
+FROM alpine:3.20.3 AS build
 
-RUN apt-get update && apt-get install -y mingw-w64 \
-        wget \
-        git \
-        ca-certificates \
-        build-essential \
-        python3 \
-        libcurl4-openssl-dev \
-        libfreetype6-dev \
-        libglew-dev \
-        libogg-dev \
-        libopus-dev \
-        libpng-dev \
-        libwavpack-dev \
-        libopusfile-dev \
-        libsdl2-dev \
-        cmake
+RUN apk add --no-cache \
+	cmake \
+	curl-dev \
+	g++ \
+	gcc \ 
+	libpng-dev \
+	libwebsockets-dev \
+	mariadb-dev \
+	ninja \
+	python3 \
+	sqlite-dev
 
-RUN git clone --depth=1 https://github.com/tpoechtrager/osxcross.git /osxcross
-RUN /osxcross/tools/get_dependencies.sh
+COPY . /tw/sources
 
-ARG OSX_SDK_FILE
-COPY $OSX_SDK_FILE /osxcross/tarballs/
-RUN ls -la /osxcross/tarballs
-RUN UNATTENDED=1 /osxcross/build.sh
+WORKDIR /tw/build
 
-RUN printf '#!/bin/bash\n \
-        set -x\n \
-        export PATH=$PATH:/osxcross/target/bin\n \
-        o32-clang++ -v\n \
-        mkdir /build/linux\n \
-        cd /build/linux\n \
-        pwd\n \
-        cmake /ddnet && make\n \
-        mkdir /build/win64\n \
-        cd /build/win64\n \
-        pwd\n \
-        cmake -DCMAKE_TOOLCHAIN_FILE=/ddnet/cmake/toolchains/mingw64.toolchain /ddnet && make\n \
-        mkdir /build/win32\n \
-        cd /build/win32\n \
-        pwd\n \
-        cmake -DCMAKE_TOOLCHAIN_FILE=/ddnet/cmake/toolchains/mingw32.toolchain /ddnet && make\n \
-        mkdir /build/macos\n \
-        cd /build/macos\n \
-        pwd\n \
-        cmake -DCMAKE_TOOLCHAIN_FILE=/ddnet/cmake/toolchains/darwin.toolchain -DCMAKE_OSX_SYSROOT=/osxcross/target/SDK/MacOSX10.11.sdk/ /ddnet && make' \
-        >> build-all.sh
-RUN chmod +x build-all.sh
-RUN mkdir /build
+RUN cmake /tw/sources \
+	-Wno-dev \
+    -DCMAKE_INSTALL_PREFIX=/tw/install \
+	-DANTIBOT=ON \
+	-DAUTOUPDATE=OFF \
+	-DCLIENT=OFF \
+	-DDEV=OFF \
+	-DIPO=ON \
+	-DMYSQL=OFF \
+	-DPREFER_BUNDLED_LIBS=OFF \
+	-DVIDEORECORDER=OFF \
+	-DVULKAN=OFF \
+	-DWEBSOCKETS=ON \
+	-GNinja
 
-ADD . /ddnet
+RUN cmake --build . -t install
+
+# ---
+
+FROM alpine:3.20.3 AS ccatch
+
+RUN apk add --no-cache \
+	libcurl \
+	libstdc++ \
+	libwebsockets \
+	sqlite-libs
+	
+COPY --from=build /tw/install/bin /tw/bin
+
+WORKDIR /tw/data
+
+ENTRYPOINT ["/tw/bin/ccatch_srv"]
